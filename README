@@ -1,0 +1,50 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=2580
+
+This plugin provides a small set of commands to facilitate 
+behaviour-driven design of vim plugins. It basically consists of two 
+parts:
+
+    spec   ... BDD-related commands
+    should ... Convenience functions for testing
+
+According to BDD theory, you are supposed to write a specification first 
+and then make the code fulfill that specification. If you don't believe 
+in BDD, you could also think of spec.vim as a more convenient approach 
+to unit testing.
+
+An example specification could look like this:
+
+    SpecBegin 'title': 'Foo', 'sfile': 'autoload/foo.vim'
+
+    It should add numbers.
+    Should be equal foo#Add(1, 2), 3
+    
+    It should not add values of incompatible types.
+    Should throw something 'foo#Add("1", 2)'
+
+Specification scripts basically are normal vim scripts but must be run 
+by the |:Spec| command.
+
+    :Spec[!] [PATH]
+        Run one or more specification files.
+        PATH can be either a file or a directory.
+
+Each specification file should contain a :SpecBegin command that defines 
+the title, and optionally the script context, before/after commands, the 
+contents of a scratch buffer, option sets etc.
+
+    :SpecBegin [ARGUMENTS AS INNER DICTIONNARY]
+        Establish the environment for the current specification.
+        Known keys for ARGUMENTS:
+        
+          title   ... The test's title.
+          file    ... The script context.
+          before  ... Code to be run before each test
+          after   ... Code to be run after each test
+          scratch ... Run spec in scratch buffer
+          cleanup ... A list of function names that will be removed
+          options ... Run the spec against different option sets
+
+Examples:
+http://github.com/tomtom/vimtlib/tree/master/spec/
+
