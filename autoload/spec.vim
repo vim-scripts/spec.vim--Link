@@ -3,11 +3,12 @@
 " @Website:     http://www.vim.org/account/profile.php?user_id=4037
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     2009-02-22.
-" @Last Change: 2009-03-07.
-" @Revision:    0.0.314
+" @Last Change: 2010-02-27.
+" @Revision:    0.0.379
 
 let s:save_cpo = &cpo
 set cpo&vim
+" call tlog#Log('Load: '. expand('<sfile>')) " vimtlib-sfile
 
 
 exec SpecInit()
@@ -144,6 +145,9 @@ endf
 
 " :nodoc:
 function! spec#__Begin(args, sfile) "{{{3
+    if !exists('g:spec_run')
+        throw 'Spec: Run the spec with the :Spec command'
+    endif
     let s:spec_args = s:ParseArgs(a:args, a:sfile)
     let s:spec_vars = keys(g:)
     call spec#__Comment('')
@@ -304,10 +308,17 @@ function! spec#__Run(path, file, bang) "{{{3
         call spec#Include(file, 1)
         " TLogVAR len(getqflist())
     endfor
-    unlet! s:spec_verbose s:spec_files s:spec_file s:should_counts g:spec_run
 
     echo " "
     redraw
+    let nfiles = len(keys(s:should_counts))
+    let nshoulds = 0
+    for cnt in values(s:should_counts)
+        let nshoulds += cnt
+    endfor
+    echom 'Spec: Checked '. nshoulds .' specs in '. nfiles .' file(s)'
+    unlet! s:spec_verbose s:spec_files s:spec_file s:should_counts g:spec_run
+
     if len(getqflist()) > 0
         try
             exec g:spec_cwindow
@@ -342,7 +353,11 @@ function! spec#Include(filename, top_spec) "{{{3
                 " TLogVAR options
             endif
         catch
-            call spec#__AddQFL(source, v:exception)
+            let msg = v:exception .': '. v:throwpoint
+            call spec#__AddQFL(source, msg)
+            echohl Error
+            echom msg
+            echohl NONE
             break
         finally
             if a:top_spec
